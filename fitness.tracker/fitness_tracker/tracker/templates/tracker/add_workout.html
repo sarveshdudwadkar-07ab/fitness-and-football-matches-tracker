@@ -1,0 +1,12 @@
+{% extends 'tracker/base.html' %}
+{% load crispy_forms_tags %} 
+{% block title %}Add Workout{% endblock %}
+{% block content %}
+<div class="card p-5 mx-auto" style="max-width: 600px;">
+    <h4 class="text-center mb-4">Record New Workout Session</h4>
+    <form method="post">{% csrf_token %}
+        {{ form|crispy }}  <!-- USED CRISPY FORMS -->
+        <button type="submit" class="btn btn-dark w-100 mt-3">Save Workout</button>
+    </form>
+</div>
+{% endblock %}

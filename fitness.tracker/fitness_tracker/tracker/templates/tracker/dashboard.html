@@ -1,0 +1,103 @@
+{% extends 'tracker/base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h2 class="mb-4 text-center text-dark">Your Fitness Dashboard</h2>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h4 class="mb-3 text-center text-secondary">Football Matches</h4>
+            
+            <h5 class="mt-4 border-bottom pb-2">Recent Matches</h5>
+            {% if matches %}
+            <ul class="list-group list-group-flush mb-4">
+                {% for m in matches|slice:":5" %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Match on {{ m.date|date:"M d, Y" }} 
+                    <span class="badge bg-success rounded-pill">{{ m.goals }} Goals (Rating: {{ m.performance_rating }}/10)</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted text-center">No football matches recorded yet. <a href="{% url 'add_match' %}">Add one!</a></p>
+            {% endif %}
+            
+            <canvas id="matchChart"></canvas>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h4 class="mb-3 text-center text-secondary">Workout Progress</h4>
+             
+            <h5 class="mt-4 border-bottom pb-2">Recent Workouts</h5>
+            {% if workouts %}
+            <ul class="list-group list-group-flush mb-4">
+                {% for w in workouts|slice:":5" %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ w.exercise }} on {{ w.date|date:"M d, Y" }} 
+                    <span class="badge bg-primary rounded-pill">{{ w.weight|default_if_none:"N/A" }}kg x {{ w.reps|default_if_none:"N/A" }} Reps</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+             <p class="text-muted text-center">No workout sessions recorded yet. <a href="{% url 'add_workout' %}">Add one!</a></p>
+            {% endif %}
+            <canvas id="workoutChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const matchCtx = document.getElementById('matchChart');
+        const workoutCtx = document.getElementById('workoutChart');
+
+        // --- Match Chart Data (Corrected for JSON parsing) ---
+        const matchDates = JSON.parse('[{% for m in matches %}"{{ m.date|date:"Y-m-d" }}"{% if not forloop.last %},{% endif %}{% endfor %}]');
+        const matchGoals = JSON.parse('[{% for m in matches %}"{{ m.goals }}"{% if not forloop.last %},{% endif %}{% endfor %}]');
+        
+        // --- Workout Chart Data (Corrected for JSON parsing) ---
+        const workoutDates = JSON.parse('[{% for w in workouts %}"{{ w.date|date:"Y-m-d" }}"{% if not forloop.last %},{% endif %}{% endfor %}]');
+        const workoutWeights = JSON.parse('[{% for w in workouts %}{{ w.weight|default:"0" }}{% if not forloop.last %},{% endif %}{% endfor %}]');
+
+        // Football Match Chart
+        if (matchDates.length > 0) {
+            new Chart(matchCtx, {
+                type: 'bar',
+                data: {
+                    labels: matchDates,
+                    datasets: [{
+                        label: 'Goals Scored',
+                        data: matchGoals,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        // Workout Progress Chart
+        if (workoutDates.length > 0) {
+            new Chart(workoutCtx, {
+                type: 'line',
+                data: {
+                    labels: workoutDates,
+                    datasets: [{
+                        label: 'Weight Lifted (kg)',
+                        data: workoutWeights,
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+        }
+    });
+</script>
+{% endblock %}

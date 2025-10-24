@@ -1,0 +1,21 @@
+{% extends 'tracker/base.html' %} 
+{% load crispy_forms_tags %}
+
+{% block title %}Add Match{% endblock %}
+
+{% block content %}
+<div class="card mx-auto" style="max-width: 600px;">
+    <h4 class="card-header text-center">Record New Football Match</h4>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            {{ form|crispy }} 
+            
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-dark mt-3">Save Match</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
